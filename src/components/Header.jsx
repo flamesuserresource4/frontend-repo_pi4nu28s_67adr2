@@ -1,14 +1,14 @@
-import { Stethoscope, CalendarCheck, Menu, LogIn, Shield, User } from "lucide-react";
+import { Stethoscope, Menu, LogIn, Shield, User } from "lucide-react";
 import { useState } from "react";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [showPatientLogin, setShowPatientLogin] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showPatientAuth, setShowPatientAuth] = useState(false);
+  const [showAdminAuth, setShowAdminAuth] = useState(false);
 
   function closeAll() {
-    setShowPatientLogin(false);
-    setShowAdminLogin(false);
+    setShowPatientAuth(false);
+    setShowAdminAuth(false);
   }
 
   return (
@@ -32,10 +32,10 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <button onClick={() => setShowPatientLogin(true)} className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 transition">
+          <button onClick={() => setShowPatientAuth(true)} className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 transition">
             <User className="h-4 w-4" /> Patient Login
           </button>
-          <button onClick={() => setShowAdminLogin(true)} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+          <button onClick={() => setShowAdminAuth(true)} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
             <Shield className="h-4 w-4" /> Admin Login
           </button>
         </div>
@@ -53,27 +53,25 @@ export default function Header() {
             <a href="#features" className="py-2">Features</a>
             <a href="#contact" className="py-2">Contact</a>
             <div className="h-px bg-gray-100 my-2" />
-            <button onClick={() => { setShowPatientLogin(true); setOpen(false); }} className="inline-flex items-center gap-2 py-2 px-3 rounded-lg border border-gray-200">
+            <button onClick={() => { setShowPatientAuth(true); setOpen(false); }} className="inline-flex items-center gap-2 py-2 px-3 rounded-lg border border-gray-200">
               <User className="h-4 w-4" /> Patient Login
             </button>
-            <button onClick={() => { setShowAdminLogin(true); setOpen(false); }} className="inline-flex items-center gap-2 py-2 px-3 rounded-lg bg-blue-600 text-white">
+            <button onClick={() => { setShowAdminAuth(true); setOpen(false); }} className="inline-flex items-center gap-2 py-2 px-3 rounded-lg bg-blue-600 text-white">
               <Shield className="h-4 w-4" /> Admin Login
             </button>
           </div>
         </div>
       )}
 
-      {/* Patient Login Modal */}
-      {showPatientLogin && (
-        <Modal onClose={closeAll} title="Patient Login">
-          <LoginForm mode="patient" onClose={closeAll} />
+      {showPatientAuth && (
+        <Modal onClose={closeAll} title="Patient Access">
+          <AuthForm role="patient" onClose={closeAll} />
         </Modal>
       )}
 
-      {/* Admin Login Modal */}
-      {showAdminLogin && (
-        <Modal onClose={closeAll} title="Admin Login">
-          <LoginForm mode="admin" onClose={closeAll} />
+      {showAdminAuth && (
+        <Modal onClose={closeAll} title="Admin Access">
+          <AuthForm role="admin" onClose={closeAll} />
         </Modal>
       )}
     </header>
@@ -97,76 +95,155 @@ function Modal({ children, onClose, title }) {
   );
 }
 
-function LoginForm({ mode = "patient", onClose }) {
+function AuthForm({ role = "patient", onClose }) {
+  const [activeTab, setActiveTab] = useState("login"); // 'login' | 'signup'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState("");
 
   const demoAdmin = { email: "brindahospital1@gmail.com", password: "Brinda@123" };
 
-  function handleSubmit(e) {
+  function handleLogin(e) {
     e.preventDefault();
-    // This is only the UI. Backend auth will be wired next.
-    if (mode === "admin") {
+    if (role === "admin") {
       if (email === demoAdmin.email && password === demoAdmin.password) {
         alert("Admin login successful (demo)");
         onClose();
         return;
-      } else {
-        alert("Invalid admin credentials. Use demo in footer.");
-        return;
       }
+      alert("Invalid admin credentials. Use the demo credentials shown.");
+      return;
     }
     alert("Patient login submitted. Backend hookup coming next.");
     onClose();
   }
 
+  function handleSignup(e) {
+    e.preventDefault();
+    if (role === "admin") {
+      alert("Admin sign-up is restricted. Hospital IT will provision admin accounts.");
+      return;
+    }
+    if (!name.trim()) {
+      alert("Please enter your full name.");
+      return;
+    }
+    alert(`Patient sign-up submitted for ${name}. We'll enable verification next.`);
+    onClose();
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Gmail</label>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@gmail.com"
-          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+    <div className="space-y-5">
+      <div className="flex rounded-lg border border-gray-200 p-1 bg-gray-50 text-sm">
+        <button
+          onClick={() => setActiveTab("login")}
+          className={`flex-1 py-2 rounded-md transition ${activeTab === "login" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
+        >
+          Login
+        </button>
+        <button
+          onClick={() => setActiveTab("signup")}
+          className={`flex-1 py-2 rounded-md transition ${activeTab === "signup" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
+        >
+          Sign up
+        </button>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Password</label>
-        <div className="mt-1 flex items-center gap-2">
-          <input
-            type={showPassword ? "text" : "password"}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs text-gray-500 hover:text-gray-700">
-            {showPassword ? "Hide" : "Show"}
+
+      {activeTab === "login" ? (
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Gmail</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@gmail.com"
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs text-gray-500 hover:text-gray-700">
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition">
+            <LogIn className="h-4 w-4" /> {role === "admin" ? "Login as Admin" : "Login as Patient"}
           </button>
-        </div>
-      </div>
 
-      {mode === "patient" && (
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <button type="button" onClick={() => alert("Sign up flow coming next")}>Create account</button>
-          <button type="button" onClick={() => alert("Reset password flow coming next")}>Forgot password?</button>
-        </div>
+          {role === "admin" && (
+            <p className="text-xs text-gray-500 text-center">Use demo: {" "}
+              <span className="font-mono">{demoAdmin.email}</span> / <span className="font-mono">{demoAdmin.password}</span>
+            </p>
+          )}
+        </form>
+      ) : (
+        <form onSubmit={handleSignup} className="space-y-4">
+          {role === "patient" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Full name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Jane Doe"
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Gmail</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@gmail.com"
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Create a strong password"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs text-gray-500 hover:text-gray-700">
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition">
+            Create account
+          </button>
+
+          {role === "admin" && (
+            <p className="text-xs text-amber-600 text-center">
+              Admin sign-up is restricted. Use the demo login or contact hospital IT.
+            </p>
+          )}
+        </form>
       )}
-
-      <button type="submit" className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition">
-        <LogIn className="h-4 w-4" /> {mode === "admin" ? "Login as Admin" : "Login as Patient"}
-      </button>
-
-      {mode === "admin" && (
-        <p className="text-xs text-gray-500 text-center">Use demo: {" "}
-          <span className="font-mono">{demoAdmin.email}</span> / <span className="font-mono">{demoAdmin.password}</span>
-        </p>
-      )}
-    </form>
+    </div>
   );
 }
